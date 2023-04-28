@@ -2,6 +2,8 @@ import pygame, sys
 from utils.button import Button
 import sente 
 from sente import stone
+from agents import RandomAgent
+
 pygame.init()
 
 SCREEN = pygame.display.set_mode((660, 450))
@@ -19,42 +21,84 @@ def Bo_Cuoc(game):
     game.resign()
     print('Bo Cuoc')
 
-def play():
+def game_mode():
     pygame.display.set_caption("Go-Game")
+    while True:
+        SCREEN.fill((255,255,255))
+        SCREEN.blit(BG, (0, 0))
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+        PEOPLE = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(330, 100), 
+                            text_input="PEOPLE", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        AGENT_0 = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(330, 220), 
+                            text_input="AGENT_FIRST", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        AGENT_1 = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(330, 340), 
+                            text_input="AGENT_SECOND", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        PEOPLE.update(SCREEN)
+        AGENT_0.update(SCREEN)
+        AGENT_1.update(SCREEN)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if PEOPLE.checkForInput(MENU_MOUSE_POS):
+                    play()
+                if AGENT_0.checkForInput(MENU_MOUSE_POS):
+                    play(stone.BLACK)
+                if AGENT_1.checkForInput(MENU_MOUSE_POS):
+                    play(stone.WHITE)
+        pygame.display.update()
+
+
+def play(may = None):
+    pygame.display.set_caption("Go-Game")
+    
     image = pygame.image.load("assets/go_game_9x9.png")
     black_image_chessman = pygame.image.load("assets/black.png")
     white_image_chessman = pygame.image.load("assets/white.png")
-    n = 9
-    game = sente.Game(n)
     color = (255,255,255)
     position = (0,0)
+
+    n = 9
+    game = sente.Game(n)
+    #Bot 
+    if(may != None):
+        agent = RandomAgent(game,may)
+    
     exit = False
     while not exit:
         if (game.is_over() == True) :
             print(game.score())
             print(game.get_result())
             print(game.get_winner())
-            break    
-        mx,my=pygame.mouse.get_pos()
-        if(game.get_active_player() == sente.stone.BLACK) :
-            image_virtual = black_image_chessman
-        elif (game.get_active_player() == sente.stone.WHITE) :
-            image_virtual = white_image_chessman
+            break  
+        #Luot cua Bot  
+        if(may != None and game.get_active_player() == may):
+            game.play(agent.next_move())
 
         SCREEN.fill(color)
         SCREEN.blit(image,dest = position)
+        # Hien thi con chuot la quan co khi di chuyen
+        mx,my=pygame.mouse.get_pos()
+        if(game.get_active_player() == stone.BLACK) :
+            image_virtual = black_image_chessman
+        elif (game.get_active_player() == stone.WHITE) :
+            image_virtual = white_image_chessman
         SCREEN.blit(image_virtual,(mx-16,my-16))
 
+        # Hien thi cac nut Button
         PLAY_BACK = Button(image=None, pos=(550, 430), 
                             text_input="BACK", font=get_font(20), base_color="Black", hovering_color="Green")
         BO_LUOT = Button(image=None, pos=(550, 30), 
                             text_input="Bo Luot", font=get_font(20), base_color="Black", hovering_color="Green")
         BO_CUOC = Button(image=None, pos=(550, 130), 
                             text_input="Bo cuoc", font=get_font(20), base_color="Black", hovering_color="Green")
-        # PLAY_BACK.changeColor(PLAY_MOUSE_POS)
         PLAY_BACK.update(SCREEN)
         BO_LUOT.update(SCREEN)
         BO_CUOC.update(SCREEN)
+
         #hien thi diem
         # Diem = "W" + str(game.score()[stone.WHITE]) + ":" + "B" + str(game.score()[stone.BLACK])
         Diem = get_font(20).render('Diem', False, (0, 0, 0))
@@ -144,7 +188,7 @@ def main_menu():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(MENU_MOUSE_POS):
-                    play()
+                    game_mode()
                 if OPTIONS_BUTTON.checkForInput(MENU_MOUSE_POS):
                     options()
                 if QUIT_BUTTON.checkForInput(MENU_MOUSE_POS):
