@@ -21,6 +21,33 @@ def Bo_Cuoc(game):
     game.resign()
     print('Bo Cuoc')
 
+def end_game(game,screen):
+    while True:
+        screen.fill((255,255,255))
+        if(game.get_winner() == stone.BLACK):
+            win = "Black thang"
+        elif (game.get_winner() == stone.WHITE):
+            win = "WHITE thang"
+        Winner = get_font(20).render(win, False, (0, 0, 0))
+        screen.blit(Winner,(230, 100))
+
+        score = 'BLACK ' + str(game.score()[stone.BLACK]) + " --- " + str(game.score()[stone.WHITE]) + ' WHITE'
+        Score = get_font(20).render(score, False, (0, 0, 0))
+        screen.blit(Score,(100,200))
+        # print(game.get_result())
+        # Hien thi cac nut Button
+        PLAY_BACK = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(330, 320), 
+                            text_input="BACK", font=get_font(20), base_color="#d7fcd4", hovering_color="Green")
+        PLAY_BACK.update(screen)
+        for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if PLAY_BACK.checkForInput(pygame.mouse.get_pos()):
+                        main_menu()  
+        pygame.display.update()    
+
 def game_mode():
     pygame.display.set_caption("Go-Game")
     while True:
@@ -63,6 +90,7 @@ def play(may = None):
 
     n = 9
     game = sente.Game(n)
+    now_move = [20,20]
     #Bot 
     if(may != None):
         agent = RandomAgent(game,may)
@@ -70,13 +98,14 @@ def play(may = None):
     exit = False
     while not exit:
         if (game.is_over() == True) :
-            print(game.score())
-            print(game.get_result())
-            print(game.get_winner())
+            end_game(game,SCREEN)
             break  
         #Luot cua Bot  
         if(may != None and game.get_active_player() == may):
-            game.play(agent.next_move())
+            turn_may = agent.next_move()
+            if type(turn_may) ==  sente.Move  :
+                now_move = [turn_may.get_x(),turn_may.get_y()]
+            game.play(turn_may)
 
         SCREEN.fill(color)
         SCREEN.blit(image,dest = position)
@@ -109,6 +138,9 @@ def play(may = None):
                     SCREEN.blit(black_image_chessman,((i)*49+15,(j)*49+15))
                 elif(game.get_board().get_stone(i+1,j+1) == sente.stone.WHITE):
                     SCREEN.blit(white_image_chessman,((i)*49+15,(j)*49+15))
+        if(now_move[0] != 20):
+            pygame.draw.circle(SCREEN,(0,100,100),((now_move[0]+1)*49-18,(now_move[1]+1)*49-18),18,3)
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -122,7 +154,8 @@ def play(may = None):
                 place_y = my - 16
                 # print(place_x,place_y)
                 if place_x%49 >=1 and place_x%49 <= 29  and place_y %49 >= 1 and place_y%49 <=29:
-                    if(game.is_legal(int(place_x/49)+1,int(place_y/49)+1)):					
+                    if(game.is_legal(int(place_x/49)+1,int(place_y/49)+1)):	
+                        now_move = [int(place_x/49),int(place_y/49)]				
                         game.play(int(place_x/49)+1,int(place_y/49)+1)
                 if BO_LUOT.checkForInput((mx,my)):
                     Bo_Luot(game)
