@@ -8,7 +8,8 @@ pygame.init()
 
 SCREEN = pygame.display.set_mode((660, 450))
 pygame.display.set_caption("Menu")
-
+BOT = 1
+TIME = 0
 BG = pygame.image.load("assets/Background.png")
 
 def get_font(size): # Returns Press-Start-2P in the desired size
@@ -115,7 +116,13 @@ def play(may = None):
     now_move = [20,20]
     #Bot 
     if(may != None):
-        agent = AlphaBetaPruningAgent(game,may,1  )
+        print(BOT)
+        if(BOT == 1):
+            agent = RandomAgent(game,may)
+        elif BOT == 2:
+            agent = AlphaBetaPruningAgent(game,may,1)
+        elif BOT == 3:
+            agent = AlphaBetaPruningAgent(game,may,2)
     
     exit = False
     num_pass = 0
@@ -196,29 +203,72 @@ def play(may = None):
         pygame.display.update()
     
 def options():
+    pygame.display.set_caption("Go-Game")
+    global BOT
     while True:
-        OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
+        SCREEN.fill((255,255,255))
+        SCREEN.blit(BG, (0, 0))
 
-        SCREEN.fill("white")
-
-        OPTIONS_TEXT = get_font(45).render("This is the OPTIONS screen.", True, "Black")
-        OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 260))
-        SCREEN.blit(OPTIONS_TEXT, OPTIONS_RECT)
-
-        OPTIONS_BACK = Button(image=None, pos=(640, 460), 
-                            text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
-
-        OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
-        OPTIONS_BACK.update(SCREEN)
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+        BOT_1 = Button(image=None, pos=(330, 100), 
+                            text_input="RandomAgent", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        BOT_2 = Button(image=None, pos=(330, 220), 
+                            text_input="AlphaBetaPruningAgentLevel1", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        BOT_3 = Button(image=None, pos=(330, 340), 
+                            text_input="AlphaBetaPruningAgentLevel2", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        BOT_1.update(SCREEN)
+        BOT_2.update(SCREEN)
+        BOT_3.update(SCREEN)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
-                    main_menu()
+                if BOT_1.checkForInput(MENU_MOUSE_POS):
+                    BOT = 1
+                    timer_option()
+                if BOT_2.checkForInput(MENU_MOUSE_POS):
+                    BOT =2 
+                    timer_option()
+                if BOT_3.checkForInput(MENU_MOUSE_POS):
+                    BOT = 3
+                    timer_option()
+        pygame.display.update()
 
+def timer_option():
+    pygame.display.set_caption("Go-Game")
+    global TIME
+    while True:
+        SCREEN.fill((255,255,255))
+        SCREEN.blit(BG, (0, 0))
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+        TIME_30p = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(330, 100), 
+                            text_input="30 Mininutes", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        TIME_60p = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(330, 220), 
+                            text_input="60 Mininutes", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        TIME_00p = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(330, 340), 
+                            text_input="unlimit Mininutes", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        TIME_30p.update(SCREEN)
+        TIME_60p.update(SCREEN)
+        TIME_00p.update(SCREEN)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if TIME_30p.checkForInput(MENU_MOUSE_POS):
+                    TIME = 30
+                    main_menu() 
+
+                if TIME_60p.checkForInput(MENU_MOUSE_POS):
+                    TIME = 60
+                    main_menu() 
+                if TIME_00p.checkForInput(MENU_MOUSE_POS):
+                    TIME = 0 
+                    main_menu() 
         pygame.display.update()
 
 def main_menu():
