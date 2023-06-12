@@ -2,13 +2,14 @@ import pygame, sys
 from utils.button import Button
 import sente 
 from sente import stone
-from agents import RandomAgent
+from agents import RandomAgent, AlphaBetaPruningAgent
 
 pygame.init()
 
 SCREEN = pygame.display.set_mode((660, 450))
 pygame.display.set_caption("Menu")
-
+BOT = 1
+TIME = 0
 BG = pygame.image.load("assets/Background.png")
 
 def get_font(size): # Returns Press-Start-2P in the desired size
@@ -18,7 +19,7 @@ def Bo_Luot(game):
     print('Bo Luoted')
 
 def Bo_Cuoc(game): 
-    game.resign()
+    # game.resign()
     print('Bo Cuoc')
 
 def end_game(game,screen):
@@ -47,6 +48,29 @@ def end_game(game,screen):
                     if PLAY_BACK.checkForInput(pygame.mouse.get_pos()):
                         main_menu()  
         pygame.display.update()    
+
+def surrender(screen,loser):
+    while True:
+        screen.fill((255,255,255))
+        if(loser == stone.WHITE):
+            win = "Black thang"
+        elif (loser == stone.BLACK):
+            win = "WHITE thang"
+        Winner = get_font(20).render(win, False, (0, 0, 0))
+        screen.blit(Winner,(230, 200))
+        # print(game.get_result())
+        # Hien thi cac nut Button
+        PLAY_BACK = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(330, 320), 
+                            text_input="BACK", font=get_font(20), base_color="#d7fcd4", hovering_color="Green")
+        PLAY_BACK.update(screen)
+        for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if PLAY_BACK.checkForInput(pygame.mouse.get_pos()):
+                        main_menu()  
+        pygame.display.update() 
 
 def game_mode():
     pygame.display.set_caption("Go-Game")
@@ -78,7 +102,6 @@ def game_mode():
                     play(stone.WHITE)
         pygame.display.update()
 
-
 def play(may = None):
     pygame.display.set_caption("Go-Game")
     
@@ -93,18 +116,30 @@ def play(may = None):
     now_move = [20,20]
     #Bot 
     if(may != None):
-        agent = RandomAgent(game,may)
+        print(BOT)
+        if(BOT == 1):
+            agent = RandomAgent(game,may)
+        elif BOT == 2:
+            agent = AlphaBetaPruningAgent(game,may,1)
+        elif BOT == 3:
+            agent = AlphaBetaPruningAgent(game,may,2)
     
     exit = False
+    num_pass = 0
     while not exit:
-        if (game.is_over() == True) :
+        # if (game.is_over() == True) :
+        if num_pass == 2:
             end_game(game,SCREEN)
             break  
         #Luot cua Bot  
         if(may != None and game.get_active_player() == may):
             turn_may = agent.next_move()
-            if type(turn_may) ==  sente.Move  :
+            # if type(turn_may) ==  sente.Move  :
+            if turn_may is not None:
                 now_move = [turn_may.get_x(),turn_may.get_y()]
+                num_pass = 0
+            else:
+                num_pass  += 1
             game.play(turn_may)
 
         SCREEN.fill(color)
@@ -152,45 +187,88 @@ def play(may = None):
             elif event.type == pygame.MOUSEBUTTONDOWN :
                 place_x = mx - 16
                 place_y = my - 16
-                # print(place_x,place_y)
                 if place_x%49 >=1 and place_x%49 <= 29  and place_y %49 >= 1 and place_y%49 <=29:
                     if(game.is_legal(int(place_x/49)+1,int(place_y/49)+1)):	
                         now_move = [int(place_x/49),int(place_y/49)]				
                         game.play(int(place_x/49)+1,int(place_y/49)+1)
+                        num_pass = 0
                 if BO_LUOT.checkForInput((mx,my)):
                     Bo_Luot(game)
+                    num_pass += 1
                 if PLAY_BACK.checkForInput((mx,my)):
                     main_menu()  
                 if BO_CUOC.checkForInput((mx,my)):
-                    Bo_Cuoc(game)  
+                    surrender(SCREEN,game.get_active_player())
 
         pygame.display.update()
-
     
 def options():
+    pygame.display.set_caption("Go-Game")
+    global BOT
     while True:
-        OPTIONS_MOUSE_POS = pygame.mouse.get_pos()
+        SCREEN.fill((255,255,255))
+        SCREEN.blit(BG, (0, 0))
 
-        SCREEN.fill("white")
-
-        OPTIONS_TEXT = get_font(45).render("This is the OPTIONS screen.", True, "Black")
-        OPTIONS_RECT = OPTIONS_TEXT.get_rect(center=(640, 260))
-        SCREEN.blit(OPTIONS_TEXT, OPTIONS_RECT)
-
-        OPTIONS_BACK = Button(image=None, pos=(640, 460), 
-                            text_input="BACK", font=get_font(75), base_color="Black", hovering_color="Green")
-
-        OPTIONS_BACK.changeColor(OPTIONS_MOUSE_POS)
-        OPTIONS_BACK.update(SCREEN)
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+        BOT_1 = Button(image=None, pos=(330, 100), 
+                            text_input="RandomAgent", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        BOT_2 = Button(image=None, pos=(330, 220), 
+                            text_input="AlphaBetaPruningAgentLevel1", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        BOT_3 = Button(image=None, pos=(330, 340), 
+                            text_input="AlphaBetaPruningAgentLevel2", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        BOT_1.update(SCREEN)
+        BOT_2.update(SCREEN)
+        BOT_3.update(SCREEN)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if OPTIONS_BACK.checkForInput(OPTIONS_MOUSE_POS):
-                    main_menu()
+                if BOT_1.checkForInput(MENU_MOUSE_POS):
+                    BOT = 1
+                    timer_option()
+                if BOT_2.checkForInput(MENU_MOUSE_POS):
+                    BOT =2 
+                    timer_option()
+                if BOT_3.checkForInput(MENU_MOUSE_POS):
+                    BOT = 3
+                    timer_option()
+        pygame.display.update()
 
+def timer_option():
+    pygame.display.set_caption("Go-Game")
+    global TIME
+    while True:
+        SCREEN.fill((255,255,255))
+        SCREEN.blit(BG, (0, 0))
+
+        MENU_MOUSE_POS = pygame.mouse.get_pos()
+        TIME_30p = Button(image=pygame.image.load("assets/Play Rect.png"), pos=(330, 100), 
+                            text_input="30 Mininutes", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        TIME_60p = Button(image=pygame.image.load("assets/Options Rect.png"), pos=(330, 220), 
+                            text_input="60 Mininutes", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        TIME_00p = Button(image=pygame.image.load("assets/Quit Rect.png"), pos=(330, 340), 
+                            text_input="unlimit Mininutes", font=get_font(20), base_color="#d7fcd4", hovering_color="White")
+        TIME_30p.update(SCREEN)
+        TIME_60p.update(SCREEN)
+        TIME_00p.update(SCREEN)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if TIME_30p.checkForInput(MENU_MOUSE_POS):
+                    TIME = 30
+                    main_menu() 
+
+                if TIME_60p.checkForInput(MENU_MOUSE_POS):
+                    TIME = 60
+                    main_menu() 
+                if TIME_00p.checkForInput(MENU_MOUSE_POS):
+                    TIME = 0 
+                    main_menu() 
         pygame.display.update()
 
 def main_menu():
