@@ -1,0 +1,108 @@
+sente game of go
+
+- class Game
++ advance_to_root()
++ comment()
++ get_active_player()
+	args: None
+	return: stone.Black or stone.White
++ get_all_sequences()
++ get_board():
+	args: None
+	return: Board
++ get_branches()
+	args: None
+	return:
+		list of something
++ get_current_sequence()
++ get_default_sequence()
++ get_legal_moves()
+	args: None
+	return:
+		list of Moves
++ get_point()
++ get_properties()
++ get_result()
+	args: None
+	return: str('W' or 'B') + '+' + (diffrence)
+	Note: throw an ValueError if game is not yet over
++ get_sequence()
++ get_winner()
+	args: None
+	return:
+		stone.BLACK or atone.WHITE or stone.EMPTY
++ is_at_root()
++ is_legal()
++ is_over()
+	args: None
+	return:
+		boopytho
++ numpy()
+	args: None
+	return:
+		numpy.ndarray of shape (9, 9, 4), type uint8 ~ each cell have a 4d binary vector
+			[1, 0, 0, 0]: black stone
+			[0, 1, 0, 0]: white stone
+			[0, 0, 1, 0]: empty
+			[0, 0, 0, 1]: ?
++ play(int, int) or play(Move)
+	args: int, int or Move
+	return: None
++ play_default_sequence()
++ play_sequence()
++ pss()
+	args: None
+	return: None
++ resign()
++ score()
+	args: None
+	return:
+		dict:  {stone.BLACK: int,
+				stone.WHITE: int,
+				'results': str('W' or 'B') + '+' + (diffrence)}
++ set_property()
++ step_up()
+	args: None
+	return: None
+	
+
+- class stone
+
+- class Vertex
+
+- class Move
++ get_stone()
+	args: None
+	return
+		stone.BLACK or stone.WHITE or stone.EMPTY
++ get_vertex()
+	args: None
+	return
+		Vertex
++ get_x()
+	args: None
+	return
+		int
++ get_y()
+	args: None
+	return
+		int
+
+- class Board9, Board13, Board19
++ get_side()
+	args: None
+	return:
+		int (side size)
++ get_stone(int, int)
+	args:
+		int x
+		int y
+	return
+		stone.BLACK or stone.WHITE or stone.EMPTY
+	Note:
+		return the stone at (x,y)
++ play(Move)
+	args:
+		Move
+	return: None
+		
