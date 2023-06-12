@@ -7,12 +7,14 @@ class RandomAgent(ABCAgent):
         super().__init__(game, color)
 
     def evaluate_board(self):
-        return super().evaluate_board()
+        return self.game.score()[self.color] - self.game.score()[self.op_color]
 
     def next_move(self):
-        legal_moves = self.game.get_legal_moves()
-        x = random.randint(0, len(legal_moves)-1)
-        if legal_moves[x].get_x() == 19 or legal_moves[x].get_y() == 19:
+        if self.game.num_pass == 1 and self.evaluate_board() > 0:
             return None
-        return legal_moves[x]
-    
+        legal_moves = self.game.get_non_pss_moves()
+        x = random.randint(0, len(legal_moves))
+        if x == len(legal_moves):
+            return None
+        else:
+            return legal_moves[x]
