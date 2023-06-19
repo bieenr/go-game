@@ -45,14 +45,22 @@ class MyGame(Game):
             self.step_up()
         return score
 
-    def play(self, move: Move):
-        self.num_pass = 0
-        self.num_moves += 1
-        self.num_pass_stack.put(0)
-        if self.is_over():
-            raise Exception("Game is over")
+    def play(self, *args):
+        if isinstance(args[0], Move):
+            move = args[0]
+            self.num_pass = 0
+            self.num_moves += 1
+            self.num_pass_stack.put(0)
+            if self.is_over():
+                raise Exception("Game is over")
 
-        super().play(move)
+            super().play(move)
+        
+        else:
+            self.num_pass = 0
+            self.num_moves += 1
+            self.num_pass_stack.put(0)
+            super().play(args[0], args[1])
 
     def pss(self):
         super().pss()

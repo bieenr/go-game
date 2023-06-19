@@ -2,6 +2,7 @@ import pygame, sys
 from utils.button import Button
 import sente 
 from sente import stone
+from MyGame import MyGame as Game
 from agents import RandomAgent, AlphaBetaPruningAgent
 
 pygame.init()
@@ -112,7 +113,7 @@ def play(may = None):
     position = (0,0)
 
     n = 9
-    game = sente.Game(n)
+    game = Game(n)
     now_move = [20,20]
     #Bot 
     if(may != None):
