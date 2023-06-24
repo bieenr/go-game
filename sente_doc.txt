@@ -15,6 +15,9 @@ sente game of go
 	return:
 		list of something
 + get_current_sequence()
+	args: None
+	return:
+		list[Move] of the move to get to the current state of board
 + get_default_sequence()
 + get_legal_moves()
 	args: None
@@ -50,6 +53,8 @@ sente game of go
 	return: None
 + play_default_sequence()
 + play_sequence()
+	args: list[Move]
+	return: None
 + pss()
 	args: None
 	return: None
