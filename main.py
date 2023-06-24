@@ -25,6 +25,10 @@ if __name__ == "__main__":
                         + 'alpha-beta pruning for white')
     parser.add_argument('--n_opening_moves', type=int, default=20, help='number '
                         + 'of opening moves')
+    parser.add_argument('--brollout', type=int, default=100, help='number of '
+                        + 'rollouts for black')
+    parser.add_argument('--wrollout', type=int, default=100, help='number of '
+                        + 'rollouts for white')
     args = parser.parse_args()
 
 

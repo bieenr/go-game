@@ -48,19 +48,24 @@ class MyGame(Game):
     def play(self, *args):
         if isinstance(args[0], Move):
             move = args[0]
-            self.num_pass = 0
-            self.num_moves += 1
-            self.num_pass_stack.put(0)
-            if self.is_over():
-                raise Exception("Game is over")
-
-            super().play(move)
-        
+            if move.get_x() != 19:
+                self.num_pass = 0
+                self.num_moves += 1
+                self.num_pass_stack.put(0)
+                if self.is_over():
+                    raise Exception("Game is over")
+                super().play(move)
+            else:
+                self.pss()
         else:
             self.num_pass = 0
             self.num_moves += 1
             self.num_pass_stack.put(0)
             super().play(args[0], args[1])
+
+    def play_sequence(self, seq):
+        for move in seq:
+            self.play(move)
 
     def pss(self):
         super().pss()
@@ -81,7 +86,7 @@ class MyGame(Game):
         if self.is_over():
             return []
         else:
-            return super().get_legal_moves()
+            return super().get_legal_moves()[:-1]
     
     def get_non_pss_moves(self):
         moves = self.get_legal_moves()
