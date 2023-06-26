@@ -4,10 +4,11 @@
     The difference is that when step up from a game state, the result of
         is_over() will be reset to False.
 """
-from sente import Game, rules, Move
+from sente import Game, rules, Move, stone
 from MyStack import MyStack
 from random import randint
 from copy import deepcopy
+import numpy as np
 
 class MyGame(Game):
     def __init__(self, size=9, rules=rules.CHINESE):
@@ -30,6 +31,10 @@ class MyGame(Game):
                     s += '.'
             s += '\n'
         return s[:-1]
+    
+    def get_board(self):
+        boardnp = (np.argmax(self.numpy(), axis=2)+1)%3
+        return boardnp
 
     def score(self):
         n_pss = 0
@@ -57,6 +62,8 @@ class MyGame(Game):
                 super().play(move)
             else:
                 self.pss()
+        elif args[0] is None:
+            self.pss()
         else:
             self.num_pass = 0
             self.num_moves += 1

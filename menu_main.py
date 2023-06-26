@@ -9,7 +9,7 @@ pygame.init()
 
 SCREEN = pygame.display.set_mode((660, 450))
 pygame.display.set_caption("Menu")
-BOT = 1
+BOT = 3
 TIME = 0
 BG = pygame.image.load("assets/Background.png")
 
@@ -170,9 +170,9 @@ def play(may = None):
         SCREEN.blit(Diem,(500,240))
         for i in range(n):
             for j in range(n):
-                if(game.get_board().get_stone(i+1,j+1) == sente.stone.BLACK):
+                if(game.get_board()[i,j] == sente.stone.BLACK):
                     SCREEN.blit(black_image_chessman,((i)*49+15,(j)*49+15))
-                elif(game.get_board().get_stone(i+1,j+1) == sente.stone.WHITE):
+                elif(game.get_board()[i,j] == sente.stone.WHITE):
                     SCREEN.blit(white_image_chessman,((i)*49+15,(j)*49+15))
         if(now_move[0] != 20):
             pygame.draw.circle(SCREEN,(0,100,100),((now_move[0]+1)*49-18,(now_move[1]+1)*49-18),18,3)
