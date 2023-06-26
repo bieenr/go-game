@@ -9,15 +9,18 @@ from MyStack import MyStack
 from random import randint
 from copy import deepcopy
 import numpy as np
+import time 
 
 class MyGame(Game):
-    def __init__(self, size=9, rules=rules.CHINESE):
+    def __init__(self, size=9, rules=rules.CHINESE,time_limit = None):
         super().__init__(size, rules)
         self.num_pass = 0
         self.num_moves = 0
         self.num_pass_stack = MyStack(maxsize=20)
         self.num_pass_stack.put(0)
-
+        self.start_time = time.time()
+        self.not_active_player = time.time()
+        self.time_limit = 0 if time_limit is None else time_limit * 60
     def __str__(self):
         arr = super().numpy()
         s = ""
@@ -51,6 +54,7 @@ class MyGame(Game):
         return score
 
     def play(self, *args):
+        self.not_active_player = time.time()
         if isinstance(args[0], Move):
             move = args[0]
             if move.get_x() != 19:
@@ -87,6 +91,9 @@ class MyGame(Game):
         self.num_moves -= 1
 
     def is_over(self):
+        if(self.time_limit != 0):
+            if(self.get_remain_time(self,player = self.get_active_player()) <= 0 ): 
+                return True 
         return self.num_pass_stack.top() >= 2
     
     def get_legal_moves(self):
@@ -106,3 +113,18 @@ class MyGame(Game):
     def get_rand_move(self):
         moves = self.get_legal_moves()
         return moves[randint(0, len(moves) - 1)]
+        
+    def get_used_time(self,player = stone.BLACK):
+        if self.get_active_player() == player :
+            return time.time() - self.start_time
+        else :
+            return self.not_active_player - self.start_time
+        
+    def get_remain_time(self,player = stone.BLACK):
+        if(self.time_limit != 0) : 
+            return self.time_limit - self.get_used_time(player)
+        else:
+            return 0 
+
+    def convert_time(self,second):
+        return str(int(second//60)) + ":" + str(int(second%60))
