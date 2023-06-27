@@ -18,8 +18,9 @@ class MyGame(Game):
         self.num_moves = 0
         self.num_pass_stack = MyStack(maxsize=20)
         self.num_pass_stack.put(0)
-        self.start_time = time.time()
-        self.not_active_player = time.time()
+        # self.start_time = time.time()
+        self.cur_move_start_time = time.time()
+        self.time_used = {stone.BLACK :0 , stone.WHITE :0}
         self.time_limit = 0 if time_limit is None else time_limit * 60
     def __str__(self):
         arr = super().numpy()
@@ -54,7 +55,6 @@ class MyGame(Game):
         return score
 
     def play(self, *args):
-        self.not_active_player = time.time()
         if isinstance(args[0], Move):
             move = args[0]
             if move.get_x() != 19:
@@ -73,6 +73,31 @@ class MyGame(Game):
             self.num_moves += 1
             self.num_pass_stack.put(0)
             super().play(args[0], args[1])
+
+    def play_time(self, *args):
+        if isinstance(args[0], Move):
+            move = args[0]
+            if move.get_x() != 19:
+                self.num_pass = 0
+                self.num_moves += 1
+                self.num_pass_stack.put(0)
+                if self.is_over():
+                    raise Exception("Game is over")
+                super().play(move)
+            else:
+                self.pss()
+        elif args[0] is None:
+            self.pss()
+        else:
+            self.num_pass = 0
+            self.num_moves += 1
+            self.num_pass_stack.put(0)
+            super().play(args[0], args[1])
+        cur_player = self.get_active_player()
+        op_player = stone.WHITE if cur_player == stone.BLACK else stone.BLACK
+        self.time_used[op_player] = self.time_used[op_player] + time.time() - self.cur_move_start_time   
+        self.cur_move_start_time = time.time()
+
 
     def play_sequence(self, seq):
         for move in seq:
@@ -116,9 +141,9 @@ class MyGame(Game):
         
     def get_used_time(self,player = stone.BLACK):
         if self.get_active_player() == player :
-            return time.time() - self.start_time
+            return self.time_used[player] + time.time() - self.not_active_player
         else :
-            return self.not_active_player - self.start_time
+            return self.time_used[player]
         
     def get_remain_time(self,player = stone.BLACK):
         if(self.time_limit != 0) : 
