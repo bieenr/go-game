@@ -77,6 +77,8 @@ if __name__ == "__main__":
 
     turn = 0
     while game.is_over() is False:
+        # print(game.time_used)
+
         if turn == 0:
             move = agentBlack.next_move()
         else:
@@ -86,7 +88,7 @@ if __name__ == "__main__":
             game.pss()
             gameLogger.info('black pass' if turn==0 else 'white pass')
         else:
-            game.play(move)
+            game.play_time(move)
         turn = 1 - turn
         gameLogger.info(game.__str__())
         gameLogger.info(f'game num_moves: {game.num_moves}')
