@@ -4,7 +4,7 @@ import time
 import datetime
 from tqdm import tqdm
 import random
-from agents import AlphaBetaPruningAgent, HumanAgent, RandomAgent, MCTSAgent
+from agents import AlphaBetaPruningAgent, HumanAgent, RandomAgent, MCTSAgent, RandomDropAgent
 import logging
 import argparse
 import os
@@ -29,6 +29,8 @@ if __name__ == "__main__":
                         + 'rollouts for black')
     parser.add_argument('--wrollout', type=int, default=100, help='number of '
                         + 'rollouts for white')
+    parser.add_argument('--bprop', type=float, default=0.02, help='propotion of children expand for black')
+    parser.add_argument('--wprop', type=float, default=0.02, help='propotion of children expand for white')
     args = parser.parse_args()
 
 
@@ -38,9 +40,9 @@ if __name__ == "__main__":
     gameLogger.setLevel(logging.INFO)
     dt = datetime.datetime.now()
     game_log_foldername = 'log/' + args.black \
-                        + '_' + (str(args.bdepth) if args.black == 'ab' else '') \
+                        + '_' + (str(args.bdepth) if args.black == 'ab' or args.black=='drop' else '') \
                         + '_' + args.white \
-                        + '_' + (str(args.wdepth) if args.white == 'ab' else '')
+                        + '_' + (str(args.wdepth) if args.white == 'ab' or args.white=='drop' else '')
     if not os.path.exists(game_log_foldername):
         os.makedirs(game_log_foldername)
     game_log_file_name =  str(datetime.datetime.timestamp(dt)) + '.log'
@@ -50,13 +52,15 @@ if __name__ == "__main__":
 
 
     # game
-    game = Game(9, rules=rules.CHINESE)
+    game = Game(9, rules=rules.CHINESE, time_limit=1)
     if args.black == 'ab':
         agentBlack = AlphaBetaPruningAgent(game, stone.BLACK, args.bdepth)
     elif args.black == 'rand':
         agentBlack = RandomAgent(game, stone.BLACK)
     elif args.black == 'mcts':
         agentBlack = MCTSAgent(game, stone.BLACK)
+    elif args.black == 'drop':
+        agentBlack = RandomDropAgent(game, stone.BLACK, args.bdepth)
     else:
         raise Exception('Invalid black agent')
     
@@ -66,6 +70,8 @@ if __name__ == "__main__":
         agentWhite = RandomAgent(game, stone.WHITE)
     elif args.white == 'mcts':
         agentWhite = MCTSAgent(game, stone.WHITE)
+    elif args.white == 'drop':
+        agentWhite = RandomDropAgent(game, stone.WHITE, args.wdepth)
     else:
         raise Exception('Invalid white agent')
 
