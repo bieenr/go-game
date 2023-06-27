@@ -36,8 +36,8 @@ class AlphaBetaPruningAgent(ABCAgent):
     def territory_score(self, state):
         # Tính toán điểm số lãnh thổ dựa trên độ chiếm đóng của mỗi người chơi
         # return self.game.score()[self.color] - self.game.score()[self.op_color]
-        black_territory = self.count_territory(state.get_board(), stone.BLACK)
-        white_territory = self.count_territory(state.get_board(), stone.WHITE)
+        black_territory = self.count_territory(state.get_board(), self.color)
+        white_territory = self.count_territory(state.get_board(), self.op_color)
         territory_score = black_territory - white_territory
         return territory_score
 
@@ -79,6 +79,8 @@ class AlphaBetaPruningAgent(ABCAgent):
                 if (ni, nj) not in visited and board[ni][nj] == player:
                     queue.append((ni, nj))
         return territory
+    # def enough_9(self,board):
+        
 
     def attack_score(self, state):
         # Đánh giá tấn công bằng cách đếm số lượng quân cờ tấn công đối thủ
@@ -181,9 +183,12 @@ class AlphaBetaPruningAgent(ABCAgent):
                 new_sc = self.game.score()[self.color] - self.game.score()[self.op_color]
                 self.game.step_up()
                 self.game.step_up()
-
-            if new_sc - init_sc > 0:
-                return None, self.evaluate_board(self.game)
+            if self.game.num_moves>=60:
+                if new_sc - init_sc >= 0:
+                    return None, self.evaluate_board(self.game)
+            else: 
+                if new_sc - init_sc > 0:
+                    return None, self.evaluate_board(self.game)
                 
             legal_moves = self.get_shuffled_non_pss_moves()
             for move in legal_moves:
