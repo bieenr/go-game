@@ -4,13 +4,15 @@ from agents.ABCAgent import ABCAgent
 from utils.constants import INF
 import random
 import numpy as np
+import time
 
 class AlphaBetaPruningAgent(ABCAgent):
     def __init__(self, game: Game, color: stone, depth: int):
         super().__init__(game, color)
         self.depth = depth
-        self.n_opening_moves = 20
+        self.n_opening_moves = 20   
         self.seed = 0
+        self.end_time = 0
 
     def get_shuffled_non_pss_moves(self):
         legal_moves = self.game.get_non_pss_moves()
@@ -36,8 +38,8 @@ class AlphaBetaPruningAgent(ABCAgent):
     def territory_score(self, state):
         # Tính toán điểm số lãnh thổ dựa trên độ chiếm đóng của mỗi người chơi
         # return self.game.score()[self.color] - self.game.score()[self.op_color]
-        black_territory = self.count_territory(state.get_board(), self.color)
-        white_territory = self.count_territory(state.get_board(), self.op_color)
+        black_territory = self.count_territory(state.get_board(), stone.BLACK)
+        white_territory = self.count_territory(state.get_board(), stone.WHITE)
         territory_score = black_territory - white_territory
         return territory_score
 
@@ -79,8 +81,6 @@ class AlphaBetaPruningAgent(ABCAgent):
                 if (ni, nj) not in visited and board[ni][nj] == player:
                     queue.append((ni, nj))
         return territory
-    # def enough_9(self,board):
-        
 
     def attack_score(self, state):
         # Đánh giá tấn công bằng cách đếm số lượng quân cờ tấn công đối thủ
@@ -135,7 +135,7 @@ class AlphaBetaPruningAgent(ABCAgent):
                             count += 1
         return count
 
-    def min_value(self, depth: int, alpha: float, beta: float):
+    def min_value(self, depth: int, time_mode:bool, alpha: float, beta: float):
         if depth == 0 or self.game.is_over():
             return None, self.evaluate_board(self.game)
         else:
@@ -143,8 +143,12 @@ class AlphaBetaPruningAgent(ABCAgent):
             val = INF
             legal_moves = self.get_shuffled_non_pss_moves()
             for move in legal_moves:
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val
+
                 self.game.play(move)
-                _, tmp_val = self.max_value(depth - 1, alpha, beta)
+                _, tmp_val = self.max_value(depth - 1, time_mode, alpha, beta)
                 if val > tmp_val:
                     val = tmp_val
                     mov = move
@@ -156,8 +160,12 @@ class AlphaBetaPruningAgent(ABCAgent):
 
             # try pass move
             if self.game.num_moves > self.n_opening_moves:
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val      
+
                 self.game.pss()
-                _, tmp_val = self.max_value(depth - 1, alpha, beta)
+                _, tmp_val = self.max_value(depth - 1, time_mode, alpha, beta)
                 if val > tmp_val:
                     val = tmp_val
                     mov = None
@@ -168,7 +176,7 @@ class AlphaBetaPruningAgent(ABCAgent):
                 self.game.step_up()
             return mov, val
 
-    def max_value(self, depth: int, alpha: float, beta: float):
+    def max_value(self, depth: int, time_mode: bool, alpha: float, beta: float):
         if depth == 0 or self.game.is_over():
             return None, self.evaluate_board(self.game)
         else:
@@ -177,23 +185,27 @@ class AlphaBetaPruningAgent(ABCAgent):
             init_sc = self.game.score()[self.color] - self.game.score()[self.op_color]
             new_sc = -INF
             if self.game.num_moves > self.n_opening_moves:
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val
+
                 self.game.pss()
-                op_move, tmp_val = self.min_value(depth - 1, alpha, beta)
+                op_move, tmp_val = self.min_value(depth - 1, time_mode, alpha, beta)
                 self.game.play(op_move)
                 new_sc = self.game.score()[self.color] - self.game.score()[self.op_color]
                 self.game.step_up()
                 self.game.step_up()
-            if self.game.num_moves>=60:
-                if new_sc - init_sc >= 0:
-                    return None, self.evaluate_board(self.game)
-            else: 
-                if new_sc - init_sc > 0:
-                    return None, self.evaluate_board(self.game)
+
+            if new_sc - init_sc > 0:
+                return None, self.evaluate_board(self.game)
                 
             legal_moves = self.get_shuffled_non_pss_moves()
             for move in legal_moves:
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val                
                 self.game.play(move)
-                _, tmp_val = self.min_value(depth - 1, alpha, beta)
+                _, tmp_val = self.min_value(depth - 1, time_mode, alpha, beta)
                 if val < tmp_val:
                     val = tmp_val
                     mov = move
@@ -217,16 +229,29 @@ class AlphaBetaPruningAgent(ABCAgent):
             #     self.game.step_up()
             return mov, val
 
-    def find_move_alpha_beta(self, depth: int):
-        move, val = self.max_value(depth, -INF, INF)
+    def find_move_alpha_beta(self, depth: int, time_mode:bool):
+
+
+        move, val = self.max_value(depth,time_mode, -INF, INF)
         print(val)
         return move
 
-    def next_move(self):
+    def next_move(self, time_mode):
+        
+
+
         sc = self.game.score()[self.color] - self.game.score()[self.op_color]
         if self.game.num_pass == 1 and sc > 0 and self.game.num_moves > self.n_opening_moves:
             return None
         if sc < -15 and self.game.num_moves > self.n_opening_moves:
             return None
         else:
-            return self.find_move_alpha_beta(self.depth)
+            
+            time_consuming = self.game.get_remain_time(self.color) * 0.00313# 9 la time_left, o.313 là hệ số tự tuning
+            self.end_time = time.time() + time_consuming
+            
+            one = time.time()
+            move = self.find_move_alpha_beta(self.depth,time_mode)
+            two = time.time()
+            print(two - one)
+            return move
