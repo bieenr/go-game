@@ -3,13 +3,13 @@ from utils.button import Button
 import sente 
 from sente import stone
 from MyGame import MyGame as Game
-from agents import RandomAgent, AlphaBetaPruningAgent
+from agents import RandomAgent, AlphaBetaPruningAgent, DropAgent
 
 pygame.init()
 
 SCREEN = pygame.display.set_mode((660, 450))
 pygame.display.set_caption("Menu")
-BOT = 3
+BOT = 4
 TIME = 0
 BG = pygame.image.load("assets/Background.png")
 
@@ -123,8 +123,10 @@ def play(may = None):
         elif BOT == 2:
             agent = AlphaBetaPruningAgent(game,may,1)
         elif BOT == 3:
-            agent = AlphaBetaPruningAgent(game,may,2)
-    
+            agent = AlphaBetaPruningAgent(game,may,3)
+        elif BOT == 4:
+            agent = DropAgent(game,may,3,0.8,True)
+
     exit = False
     num_pass = 0
     while not exit:
@@ -200,6 +202,7 @@ def play(may = None):
                     main_menu()  
                 if BO_CUOC.checkForInput((mx,my)):
                     surrender(SCREEN,game.get_active_player())
+                print(game.score())
 
         pygame.display.update()
     

@@ -9,10 +9,11 @@ from MyStack import MyStack
 from random import randint
 from copy import deepcopy
 import numpy as np
-import time 
+import time
+
 
 class MyGame(Game):
-    def __init__(self, size=9, rules=rules.CHINESE,time_limit = None):
+    def __init__(self, size=9, rules=rules.CHINESE, time_limit=None):
         super().__init__(size, rules)
         self.num_pass = 0
         self.num_moves = 0
@@ -20,8 +21,9 @@ class MyGame(Game):
         self.num_pass_stack.put(0)
         # self.start_time = time.time()
         self.cur_move_start_time = time.time()
-        self.time_used = {stone.BLACK :0 , stone.WHITE :0}
+        self.time_used = {stone.BLACK: 0, stone.WHITE: 0}
         self.time_limit = 0 if time_limit is None else time_limit * 60
+
     def __str__(self):
         arr = super().numpy()
         s = ""
@@ -35,9 +37,9 @@ class MyGame(Game):
                     s += '.'
             s += '\n'
         return s[:-1]
-    
+
     def get_board(self):
-        boardnp = (np.argmax(self.numpy(), axis=2)+1)%3
+        boardnp = (np.argmax(self.numpy(), axis=2)+1) % 3
         return boardnp
 
     def score(self):
@@ -95,9 +97,9 @@ class MyGame(Game):
             super().play(args[0], args[1])
         cur_player = self.get_active_player()
         op_player = stone.WHITE if cur_player == stone.BLACK else stone.BLACK
-        self.time_used[op_player] = self.time_used[op_player] + time.time() - self.cur_move_start_time   
+        self.time_used[op_player] = self.time_used[op_player] + \
+            time.time() - self.cur_move_start_time
         self.cur_move_start_time = time.time()
-
 
     def play_sequence(self, seq):
         for move in seq:
@@ -116,40 +118,40 @@ class MyGame(Game):
         self.num_moves -= 1
 
     def is_over(self):
-        if(self.time_limit != 0):
-            if(self.get_remain_time(self,player = self.get_active_player()) <= 0 ): 
-                return True 
+        # if (self.time_limit != 0):
+        #     if (self.get_remain_time(player=self.get_active_player()) <= 0):
+        #         return True
         return self.num_pass_stack.top() >= 2
-    
+
     def get_legal_moves(self):
         if self.is_over():
             return []
         else:
             return super().get_legal_moves()[:-1]
-    
+
     def get_non_pss_moves(self):
         moves = self.get_legal_moves()
         return [move for move in moves if move.get_x() != 19 and move.get_y() != 19]
-    
+
     def get_rand_non_pss_move(self):
         moves = self.get_non_pss_moves()
         return moves[randint(0, len(moves) - 1)]
-    
+
     def get_rand_move(self):
         moves = self.get_legal_moves()
         return moves[randint(0, len(moves) - 1)]
-        
-    def get_used_time(self,player = stone.BLACK):
-        if self.get_active_player() == player :
+
+    def get_used_time(self, player=stone.BLACK):
+        if self.get_active_player() == player:
             return self.time_used[player] + time.time() - self.not_active_player
-        else :
+        else:
             return self.time_used[player]
-        
-    def get_remain_time(self,player = stone.BLACK):
-        if(self.time_limit != 0) : 
+
+    def get_remain_time(self, player=stone.BLACK):
+        if (self.time_limit != 0):
             return self.time_limit - self.get_used_time(player)
         else:
-            return 0 
+            return 0
 
-    def convert_time(self,second):
-        return str(int(second//60)) + ":" + str(int(second%60))
+    def convert_time(self, second):
+        return str(int(second//60)) + ":" + str(int(second % 60))
