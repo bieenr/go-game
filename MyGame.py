@@ -10,6 +10,7 @@ from random import randint
 from copy import deepcopy
 import numpy as np
 import time
+import logging
 
 
 class MyGame(Game):
@@ -118,9 +119,11 @@ class MyGame(Game):
         self.num_moves -= 1
 
     def is_over(self):
-        # if (self.time_limit != 0):
-        #     if (self.get_remain_time(player=self.get_active_player()) <= 0):
-        #         return True
+        logger = logging.getLogger('gameLogger')
+        if(self.time_limit != 0):
+            if(self.get_remain_time(player = self.get_active_player()) <= 0 ): 
+                logger.info('Time''s up')
+                return True 
         return self.num_pass_stack.top() >= 2
 
     def get_legal_moves(self):
@@ -140,11 +143,11 @@ class MyGame(Game):
     def get_rand_move(self):
         moves = self.get_legal_moves()
         return moves[randint(0, len(moves) - 1)]
-
-    def get_used_time(self, player=stone.BLACK):
-        if self.get_active_player() == player:
-            return self.time_used[player] + time.time() - self.not_active_player
-        else:
+        
+    def get_used_time(self,player = stone.BLACK):
+        if self.get_active_player() == player :
+            return self.time_used[player] + time.time() - self.cur_move_start_time
+        else :
             return self.time_used[player]
 
     def get_remain_time(self, player=stone.BLACK):

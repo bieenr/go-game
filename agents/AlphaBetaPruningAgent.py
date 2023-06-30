@@ -12,8 +12,9 @@ class AlphaBetaPruningAgent(ABCAgent):
     def __init__(self, game: Game, color: stone, depth: int):
         super().__init__(game, color)
         self.depth = depth
-        self.n_opening_moves = 20
+        self.n_opening_moves = 20   
         self.seed = 0
+        self.end_time = 0
 
     def get_candidate_moves(self):
         legal_moves = self.game.get_non_pss_moves()
@@ -88,7 +89,6 @@ class AlphaBetaPruningAgent(ABCAgent):
                 if (ni, nj) not in visited and board[ni][nj] == player:
                     queue.append((ni, nj))
         return territory
-    # def enough_9(self,board):
 
     def attack_score(self, state):
         # Đánh giá tấn công bằng cách đếm số lượng quân cờ tấn công đối thủ
@@ -198,8 +198,8 @@ class AlphaBetaPruningAgent(ABCAgent):
         # return (Q1-Q3+2*Qd)/4
         return (10/self.game.num_moves*(Q1-Q3)-abs(35-self.game.num_moves)*2*Qd)/4
 
-    def min_value(self, depth: int, alpha: float, beta: float):
-        if self.game.is_over():
+    def min_value(self, depth: int, time_mode:bool, alpha: float, beta: float):
+        if depth == 0 or self.game.is_over():
             # print('game is over here')
             if self.game.score()[self.color] > self.game.score()[self.op_color]:
                 return None, INF
@@ -219,8 +219,12 @@ class AlphaBetaPruningAgent(ABCAgent):
 
             legal_moves = self.get_candidate_moves()
             for move in legal_moves:
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val
+
                 self.game.play(move)
-                _, tmp_val = self.max_value(depth - 1, alpha, beta)
+                _, tmp_val = self.max_value(depth - 1, time_mode, alpha, beta)
                 if val > tmp_val:
                     val = tmp_val
                     mov = move
@@ -230,15 +234,24 @@ class AlphaBetaPruningAgent(ABCAgent):
                 beta = min(beta, val)
                 self.game.step_up()
 
-            # print('min:', val, pass_sc)
-
-            if pass_sc < val:
-                return None, pass_sc
-            # elif val > 30.:
-            #     return None, pass_sc
+            # try pass move
+            if self.game.num_moves > self.n_opening_moves:
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val      
+                self.game.pss()
+                _, tmp_val = self.max_value(depth - 1, time_mode, alpha, beta)
+                if val > tmp_val:
+                    val = tmp_val
+                    mov = None
+                if val <= alpha:
+                    self.game.step_up()
+                    return mov, val
+                beta = min(beta, val)
+                self.game.step_up()
             return mov, val
 
-    def max_value(self, depth: int, alpha: float, beta: float):
+    def max_value(self, depth: int, time_mode: bool, alpha: float, beta: float):
         if self.game.is_over():
             # print('game is over here')
             if self.game.score()[self.color] > self.game.score()[self.op_color]:
@@ -253,14 +266,20 @@ class AlphaBetaPruningAgent(ABCAgent):
             pass_sc = -INF
             if self.game.num_moves > self.n_opening_moves:
                 # calculate heuristic score for passing move
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val
                 self.game.pss()
-                _, pass_sc = self.min_value(depth - 1, alpha, beta)
+                _, pass_sc = self.min_value(depth - 1, time_mode, alpha, beta)
                 self.game.step_up()
 
             legal_moves = self.get_candidate_moves()
             for move in legal_moves:
+                if time_mode == True:
+                    if (time.time()>=self.end_time):
+                        return mov, val                
                 self.game.play(move)
-                _, tmp_val = self.min_value(depth - 1, alpha, beta)
+                _, tmp_val = self.min_value(depth - 1, time_mode, alpha, beta)
                 if val < tmp_val:
                     val = tmp_val
                     mov = move
@@ -278,18 +297,25 @@ class AlphaBetaPruningAgent(ABCAgent):
             #     return None, pass_sc
             return mov, val
 
-    def find_move_alpha_beta(self, depth: int):
+    def find_move_alpha_beta(self, depth: int, time_mode:bool):
         print(self.color, 'turn, move', self.game.num_moves)
-        move, val = self.max_value(depth, -INF, INF)
+        move, val = self.max_value(depth,time_mode, -INF, INF)
         print(val)
         print()
         return move
 
-    def next_move(self):
+    def next_move(self, time_mode):
         sc = self.game.score()[self.color] - self.game.score()[self.op_color]
         if self.game.num_pass == 1 and sc > 0 and self.game.num_moves > self.n_opening_moves:
             return None
         if sc < -15 and self.game.num_moves > self.n_opening_moves:
             return None
         else:
-            return self.find_move_alpha_beta(self.depth)
+            time_consuming = self.game.get_remain_time(self.color) * 0.00313# 9 la time_left, o.313 là hệ số tự tuning
+            self.end_time = time.time() + time_consuming
+            
+            one = time.time()
+            move = self.find_move_alpha_beta(self.depth,time_mode)
+            two = time.time()
+            print(two - one)
+            return move

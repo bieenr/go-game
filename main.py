@@ -4,7 +4,7 @@ import time
 import datetime
 from tqdm import tqdm
 import random
-from agents import AlphaBetaPruningAgent, HumanAgent, RandomAgent, MCTSAgent, DropAgent
+from agents import AlphaBetaPruningAgent, HumanAgent, RandomAgent, MCTSAgent, AlphaBetaPruningAgent_time, DropAgent
 import logging
 import argparse
 import os
@@ -19,9 +19,9 @@ if __name__ == "__main__":
     parser.add_argument('--white', type=str, default='ab', help='white '
                         + 'agent, choose from ab (alpha-beta), rand (random),'
                         + ' mcts (monte-carlo tree search)')
-    parser.add_argument('--bdepth', type=int, default=3, help='depth of '
+    parser.add_argument('--bdepth', type=int, default=2, help='depth of '
                         + 'alpha-beta pruning for black')
-    parser.add_argument('--wdepth', type=int, default=3, help='depth of '
+    parser.add_argument('--wdepth', type=int, default=2, help='depth of '
                         + 'alpha-beta pruning for white')
     parser.add_argument('--n_opening_moves', type=int, default=20, help='number '
                         + 'of opening moves')
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
 
     # game
-    game = Game(9, rules=rules.CHINESE, time_limit=1)
+    game = Game(9, rules=rules.CHINESE)
     if args.black == 'ab':
         agentBlack = AlphaBetaPruningAgent(game, stone.BLACK, args.bdepth)
     elif args.black == 'rand':
@@ -81,9 +81,9 @@ if __name__ == "__main__":
     while game.is_over() is False:
         begin_time = time.time()
         if turn == 0:
-            move = agentBlack.next_move()
+            move = agentBlack.next_move(False)
         else:
-            move = agentWhite.next_move()
+            move = agentWhite.next_move(False)
         gameLogger.info(move)
         if move is None:
             game.pss()
