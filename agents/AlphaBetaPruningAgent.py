@@ -4,6 +4,9 @@ from agents.ABCAgent import ABCAgent
 from utils.constants import INF
 import random
 import numpy as np
+import re
+import time
+
 
 class AlphaBetaPruningAgent(ABCAgent):
     def __init__(self, game: Game, color: stone, depth: int):
@@ -12,24 +15,27 @@ class AlphaBetaPruningAgent(ABCAgent):
         self.n_opening_moves = 20
         self.seed = 0
 
-    def get_shuffled_non_pss_moves(self):
+    def get_candidate_moves(self):
         legal_moves = self.game.get_non_pss_moves()
         random.shuffle(legal_moves)
         return legal_moves
-    
+
     def evaluate_board(self, state):
         score = 0
         score += self.territory_score(state)  # Đánh giá lãnh thổ
         # print('***')
         # print(score)
-        score -= self.attack_score(state)* 0.5  # Đánh giá tấn công
+        score -= self.attack_score(state) * 0.5  # Đánh giá tấn công
         # print(score)
-        score += self.defense_score(state)* 0.3  # Đánh giá phòng thủ
+        score += self.defense_score(state) * 0.3  # Đánh giá phòng thủ
         # print(score)
-        score -= self.influence_score(state)* 0.2  # Đánh giá ảnh hưởng
+        score -= self.influence_score(state) * 0.2  # Đánh giá ảnh hưởng
         # print(score)
-        score += self.blocking_score(state)* 0.4  # Đánh giá chặn đường đi của đối thủ
-        score += self.Euler_number(state.get_board(),self.color)-self.Euler_number(state.get_board(),self.op_color) # Create an eye 
+        # Đánh giá chặn đường đi của đối thủ
+        score += self.blocking_score(state) * 0.4
+        score += self.Euler_number(state.get_board(), self.color) - \
+                 self.Euler_number(state.get_board(), self.op_color)  
+                # Create eye and connecting stones
         # print(score)
         # print('***')
         return score
@@ -38,13 +44,15 @@ class AlphaBetaPruningAgent(ABCAgent):
         # Tính toán điểm số lãnh thổ dựa trên độ chiếm đóng của mỗi người chơi
         # return self.game.score()[self.color] - self.game.score()[self.op_color]
         black_territory = self.count_territory(state.get_board(), self.color)
-        white_territory = self.count_territory(state.get_board(), self.op_color)
+        white_territory = self.count_territory(
+            state.get_board(), self.op_color)
         territory_score = black_territory - white_territory
         return territory_score
 
     def count_territory(self, board, player):
         # Đếm số lượng ô thuộc lãnh thổ của một người chơi
-        territory = self.game.score()[player] - (self.game.get_board()==player).sum()
+        territory = self.game.score()[player] - \
+            (self.game.get_board() == player).sum()
         # visited = set()
 
         # for i in range(9):
@@ -81,26 +89,27 @@ class AlphaBetaPruningAgent(ABCAgent):
                     queue.append((ni, nj))
         return territory
     # def enough_9(self,board):
-        
 
     def attack_score(self, state):
         # Đánh giá tấn công bằng cách đếm số lượng quân cờ tấn công đối thủ
-        attack_score = self.count_stones(state.get_board(), self.op_color) 
+        attack_score = self.count_stones(state.get_board(), self.op_color)
         return attack_score
 
     def defense_score(self, state):
         # Đánh giá phòng thủ bằng cách đếm số lượng quân cờ phòng thủ của người chơi
-        defense_score = self.count_stones(state.get_board(), self.color) 
+        defense_score = self.count_stones(state.get_board(), self.color)
         return defense_score
 
     def influence_score(self, state):
         # Đánh giá ảnh hưởng bằng cách đếm số lượng quân cờ gần biên giới của người chơi
-        influence_score = self.count_boundary_stones(state.get_board(), self.color) 
+        influence_score = self.count_boundary_stones(
+            state.get_board(), self.color)
         return influence_score
 
     def blocking_score(self, state):
         # Đánh giá chặn đường đi của đối thủ bằng cách đếm số lượng đường đi bị chặn
-        blocking_score = self.count_blocked_paths(state.get_board(), self.op_color)
+        blocking_score = self.count_blocked_paths(
+            state.get_board(), self.op_color)
         return blocking_score
 
     def count_stones(self, board, player):
@@ -135,45 +144,80 @@ class AlphaBetaPruningAgent(ABCAgent):
                         if board[ni][nj] == stone.EMPTY:
                             count += 1
         return count
+
     def Euler_number(self, board, player):
         # heuristic count to create an eye
-        Q1=0;
-        Q3=0;
-        Qd=0
-        for i in range(8):
-            for j in range(8):
-                #Q1
-                if board[i][j] == player and board[i+1][j] == stone.EMPTY and board[i][j+1] == stone.EMPTY and board[i+1][j+1] == stone.EMPTY:
-                    Q1+=1
-                if board[i][j] == stone.EMPTY and board[i+1][j] == player and board[i][j+1] == stone.EMPTY and board[i+1][j+1] == stone.EMPTY:
-                    Q1+=1
-                if board[i][j] == stone.EMPTY and board[i+1][j] == stone.EMPTY and board[i][j+1] == player and board[i+1][j+1] == stone.EMPTY:
-                    Q1+=1
-                if board[i][j] == stone.EMPTY and board[i+1][j] == stone.EMPTY and board[i][j+1] == stone.EMPTY and board[i+1][j+1] == player:
-                    Q1+=1
-                #Q3
-                if board[i][j] == stone.EMPTY and board[i+1][j] == player and board[i][j+1] == player and board[i+1][j+1] == player:
-                    Q3+=1
-                if board[i][j] == player and board[i+1][j] == stone.EMPTY and board[i][j+1] == player and board[i+1][j+1] == player:
-                    Q3+=1
-                if board[i][j] == player and board[i+1][j] == player and board[i][j+1] == stone.EMPTY and board[i+1][j+1] == player:
-                    Q3+=1
-                if board[i][j] == player and board[i+1][j] == player and board[i][j+1] == player and board[i+1][j+1] == stone.EMPTY:
-                    Q3+=1
-                #Qd
-                if board[i][j] == player and board[i+1][j] == stone.EMPTY and board[i][j+1] == stone.EMPTY and board[i+1][j+1] == player:
-                    Qd+=1
-                if board[i][j] == stone.EMPTY and board[i+1][j] == player and board[i][j+1] == player and board[i+1][j+1] == stone.EMPTY:
-                    Qd+=1
+        Q1 = 0
+        Q3 = 0
+        Qd = 0
+
+        if player == stone.BLACK:
+            q1pattern1 = r'(?=(b\..{8}\.\.))'
+            q1pattern2 = r'(?=(\.b.{8}\.\.))'
+            q1pattern3 = r'(?=(\.\..{8}b\.))'
+            q1pattern4 = r'(?=(\.\..{8}\.b))'
+
+            q3pattern1 = r'(?=(bb.{8}b\.))'
+            q3pattern2 = r'(?=(bb.{8}\.b))'
+            q3pattern3 = r'(?=(\.b.{8}bb))'
+            q3pattern4 = r'(?=(b\..{8}bb))'
+
+            qdpattern1 = r'(?=(b\..{8}\.b))'
+            qdpattern2 = r'(?=(\.b.{8}b\.))'
+
+        elif player == stone.WHITE:
+            q1pattern1 = r'(?=(W\..{8}\.\.))'
+            q1pattern2 = r'(?=(\.W.{8}\.\.))'
+            q1pattern3 = r'(?=(\.\..{8}W\.))'
+            q1pattern4 = r'(?=(\.\..{8}\.W))'
+
+            q3pattern1 = r'(?=(WW.{8}W\.))'
+            q3pattern2 = r'(?=(WW.{8}\.W))'
+            q3pattern3 = r'(?=(\.W.{8}WW))'
+            q3pattern4 = r'(?=(W\..{8}WW))'
+
+            qdpattern1 = r'(?=(W\..{8}\.W))'
+            qdpattern2 = r'(?=(\.W.{8}W\.))'
+
+        Q1 += len([match.start() for match in re.finditer(q1pattern1,
+                  self.game.__str__(), re.DOTALL)])
+        Q1 += len([match.start() for match in re.finditer(q1pattern2,
+                  self.game.__str__(), re.DOTALL)])
+        Q1 += len([match.start() for match in re.finditer(q1pattern3,
+                  self.game.__str__(), re.DOTALL)])
+        Q1 += len([match.start() for match in re.finditer(q1pattern4,
+                  self.game.__str__(), re.DOTALL)])
+
+        Q3 += len(re.findall(q3pattern1, self.game.__str__(), re.DOTALL))
+        Q3 += len(re.findall(q3pattern2, self.game.__str__(), re.DOTALL))
+        Q3 += len(re.findall(q3pattern3, self.game.__str__(), re.DOTALL))
+        Q3 += len(re.findall(q3pattern4, self.game.__str__(), re.DOTALL))
+
+        Qd += len(re.findall(qdpattern1, self.game.__str__(), re.DOTALL))
+        Qd += len(re.findall(qdpattern2, self.game.__str__(), re.DOTALL))
+        # return (Q1-Q3+2*Qd)/4
         return (10/self.game.num_moves*(Q1-Q3)-abs(35-self.game.num_moves)*2*Qd)/4
 
     def min_value(self, depth: int, alpha: float, beta: float):
-        if depth == 0 or self.game.is_over():
+        if self.game.is_over():
+            # print('game is over here')
+            if self.game.score()[self.color] > self.game.score()[self.op_color]:
+                return None, INF
+            else:
+                return None, -INF
+        if depth == 0:
             return None, self.evaluate_board(self.game)
         else:
             mov = None
             val = INF
-            legal_moves = self.get_shuffled_non_pss_moves()
+            pass_sc = INF
+            if self.game.num_moves > self.n_opening_moves:
+                # calculate heuristic score for passing move
+                self.game.pss()
+                _, pass_sc = self.max_value(depth - 1, alpha, beta)
+                self.game.step_up()
+
+            legal_moves = self.get_candidate_moves()
             for move in legal_moves:
                 self.game.play(move)
                 _, tmp_val = self.max_value(depth - 1, alpha, beta)
@@ -186,44 +230,34 @@ class AlphaBetaPruningAgent(ABCAgent):
                 beta = min(beta, val)
                 self.game.step_up()
 
-            # try pass move
-            if self.game.num_moves > self.n_opening_moves:
-                self.game.pss()
-                _, tmp_val = self.max_value(depth - 1, alpha, beta)
-                if val > tmp_val:
-                    val = tmp_val
-                    mov = None
-                if val <= alpha:
-                    self.game.step_up()
-                    return mov, val
-                beta = min(beta, val)
-                self.game.step_up()
+            # print('min:', val, pass_sc)
+
+            if pass_sc < val:
+                return None, pass_sc
+            # elif val > 30.:
+            #     return None, pass_sc
             return mov, val
 
     def max_value(self, depth: int, alpha: float, beta: float):
-        if depth == 0 or self.game.is_over():
+        if self.game.is_over():
+            # print('game is over here')
+            if self.game.score()[self.color] > self.game.score()[self.op_color]:
+                return None, INF
+            else:
+                return None, -INF
+        elif depth == 0:
             return None, self.evaluate_board(self.game)
         else:
             mov = None
             val = -INF
-            init_sc = self.game.score()[self.color] - self.game.score()[self.op_color]
-            new_sc = -INF
+            pass_sc = -INF
             if self.game.num_moves > self.n_opening_moves:
+                # calculate heuristic score for passing move
                 self.game.pss()
-                op_move, tmp_val = self.min_value(depth - 1, alpha, beta)
-                self.game.play(op_move)
-                new_sc = self.game.score()[self.color] - self.game.score()[self.op_color]
+                _, pass_sc = self.min_value(depth - 1, alpha, beta)
                 self.game.step_up()
-                self.game.step_up()
-            
-            if self.game.num_moves>=60:
-                if new_sc - init_sc >= 0:
-                    return None, self.evaluate_board(self.game)
-            else: 
-                if new_sc - init_sc > 0:
-                    return None, self.evaluate_board(self.game)
-                
-            legal_moves = self.get_shuffled_non_pss_moves()
+
+            legal_moves = self.get_candidate_moves()
             for move in legal_moves:
                 self.game.play(move)
                 _, tmp_val = self.min_value(depth - 1, alpha, beta)
@@ -236,23 +270,19 @@ class AlphaBetaPruningAgent(ABCAgent):
                 alpha = max(alpha, val)
                 self.game.step_up()
 
-            # try pass move
-            # if self.game.num_moves > self.n_opening_moves:
-            #     self.game.pss()
-            #     _, tmp_val = self.min_value(depth - 1, alpha, beta)
-            #     if val < tmp_val:
-            #         val = tmp_val
-            #         mov = None
-            #     if val >= beta:
-            #         self.game.step_up()
-            #         return mov, val
-            #     alpha = max(alpha, val)
-            #     self.game.step_up()
+            # print('max:', val, pass_sc)
+
+            if pass_sc > val:
+                return None, pass_sc
+            # elif val < -30.:
+            #     return None, pass_sc
             return mov, val
 
     def find_move_alpha_beta(self, depth: int):
+        print(self.color, 'turn, move', self.game.num_moves)
         move, val = self.max_value(depth, -INF, INF)
         print(val)
+        print()
         return move
 
     def next_move(self):
