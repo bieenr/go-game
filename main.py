@@ -2,7 +2,7 @@ from sente import stone, Move, rules
 from MyGame import MyGame as Game
 import time
 import datetime
-from agents import AlphaBetaPruningAgent, RandomAgent, MCTSAgent, DropAgent
+from agents import AlphaBetaPruningAgent, RandomAgent, MCTSAgent, DropAgent, GreedyAgent
 import logging
 import argparse
 import os
@@ -39,10 +39,10 @@ if __name__ == "__main__":
     gameLogger.setLevel(logging.INFO)
     dt = datetime.datetime.now()
     game_log_foldername = 'log/' + args.black \
-                        + '_' + (str(args.bdepth) if args.black == 'ab' or args.black=='drop' else '') \
+                        + '_' + (str(args.bdepth) if args.black in ['ab', 'drop', 'greedy'] else '') \
                         + ('_' + str(args.bwidth) if args.black == 'drop' else '') \
                         + '_' + args.white \
-                        + '_' + (str(args.wdepth) if args.white == 'ab' or args.white=='drop' else '') \
+                        + '_' + (str(args.wdepth) if args.white in ['ab', 'drop', 'greedy'] else '') \
                         + ('_' + str(args.wwidth) if args.white == 'drop' else '')
     if not os.path.exists(game_log_foldername):
         os.makedirs(game_log_foldername)
@@ -62,6 +62,8 @@ if __name__ == "__main__":
         agentBlack = MCTSAgent(game, stone.BLACK)
     elif args.black == 'drop':
         agentBlack = DropAgent(game, stone.BLACK, args.bdepth, args.bwidth)
+    elif args.black == 'greedy':
+        agentBlack = GreedyAgent(game, stone.BLACK, args.bdepth)
     else:
         raise Exception('Invalid black agent')
     
@@ -73,6 +75,8 @@ if __name__ == "__main__":
         agentWhite = MCTSAgent(game, stone.WHITE)
     elif args.white == 'drop':
         agentWhite = DropAgent(game, stone.WHITE, args.wdepth, args.wwidth)
+    elif args.white == 'greedy':
+        agentWhite = GreedyAgent(game, stone.WHITE, args.wdepth)
     else:
         raise Exception('Invalid white agent')
 
