@@ -29,7 +29,7 @@ if __name__ == "__main__":
                         + 'rollouts for white')
     parser.add_argument('--bwidth', type=int, default=10, help='number of children expand for black')
     parser.add_argument('--wwidth', type=int, default=10, help='number of children expand for white')
-    parser.add_argument('--time-limit', type=int, default=15, help='number of time (minutes) for each side, set <0 if play unlimited time')
+    parser.add_argument('--time-limit', type=int, default=-1, help='number of time (minutes) for each side, set <0 if play unlimited time')
     args = parser.parse_args()
 
 
@@ -53,7 +53,11 @@ if __name__ == "__main__":
 
 
     # game
-    game = Game(9, rules=rules.CHINESE, time_limit=args.time_limit)
+    if args.time_limit < 0:
+        TL = None
+    else:
+        TL = args.time_limit
+    game = Game(9, rules=rules.CHINESE, time_limit=TL)
     if args.black == 'ab':
         agentBlack = AlphaBetaPruningAgent(game, stone.BLACK, args.bdepth)
     elif args.black == 'rand':
