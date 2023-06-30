@@ -117,7 +117,7 @@ def play(may = None):
     now_move = [20,20]
     #Bot 
     if(may != None):
-        print(BOT)
+        # print(BOT)
         if(BOT == 1):
             agent = RandomAgent(game,may)
         elif BOT == 2:
@@ -127,24 +127,33 @@ def play(may = None):
     
     exit = False
     num_pass = 0
+    bo_luot_text = ""
     while not exit:
-        # if (game.is_over() == True) :
         if num_pass == 2:
             end_game(game,SCREEN)
             break  
         #Luot cua Bot  
         if(may != None and game.get_active_player() == may):
-            turn_may = agent.next_move()
-            # if type(turn_may) ==  sente.Move  :
+            turn_may = agent.next_move()      
             if turn_may is not None:
+                bo_luot_text = ""
                 now_move = [turn_may.get_x(),turn_may.get_y()]
                 num_pass = 0
             else:
                 num_pass  += 1
             game.play(turn_may)
+            if turn_may is None :
+                if game.get_active_player() == stone.BLACK :
+                    txt = "W"
+                else :
+                    txt = "B"
+                bo_luot_text = f'{txt} bo luot'
 
         SCREEN.fill(color)
         SCREEN.blit(image,dest = position)
+
+        bo_luot_component = get_font(18).render(bo_luot_text, False, (255, 0, 0))
+        SCREEN.blit(bo_luot_component,(470,340))
         # Hien thi con chuot la quan co khi di chuyen
         mx,my=pygame.mouse.get_pos()
         if(game.get_active_player() == stone.BLACK) :
@@ -165,9 +174,11 @@ def play(may = None):
         BO_CUOC.update(SCREEN)
 
         #hien thi diem
-        # Diem = "W" + str(game.score()[stone.WHITE]) + ":" + "B" + str(game.score()[stone.BLACK])
+        diem_text = "W" + str(game.score()[stone.WHITE]) + ":" + "B" + str(game.score()[stone.BLACK])
         Diem = get_font(20).render('Diem', False, (0, 0, 0))
         SCREEN.blit(Diem,(500,240))
+        diem_component = get_font(18).render(diem_text, False, (0, 0, 0))
+        SCREEN.blit(diem_component,(465,280))
         for i in range(n):
             for j in range(n):
                 if(game.get_board()[i,j] == sente.stone.BLACK):
@@ -194,6 +205,11 @@ def play(may = None):
                         game.play(int(place_x/49)+1,int(place_y/49)+1)
                         num_pass = 0
                 if BO_LUOT.checkForInput((mx,my)):
+                    if game.get_active_player() == stone.BLACK :
+                        txt = "B"
+                    else :
+                        txt = "W"
+                    bo_luot_text = f'{txt} bo luot'
                     Bo_Luot(game)
                     num_pass += 1
                 if PLAY_BACK.checkForInput((mx,my)):
