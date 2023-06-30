@@ -2,9 +2,7 @@ from sente import stone, Move, rules
 from MyGame import MyGame as Game
 import time
 import datetime
-from tqdm import tqdm
-import random
-from agents import AlphaBetaPruningAgent, HumanAgent, RandomAgent, MCTSAgent, AlphaBetaPruningAgent_time, DropAgent
+from agents import AlphaBetaPruningAgent, RandomAgent, MCTSAgent, DropAgent
 import logging
 import argparse
 import os
@@ -31,6 +29,7 @@ if __name__ == "__main__":
                         + 'rollouts for white')
     parser.add_argument('--bwidth', type=int, default=10, help='number of children expand for black')
     parser.add_argument('--wwidth', type=int, default=10, help='number of children expand for white')
+    parser.add_argument('--time-limit', type=int, default=15, help='number of time (minutes) for each side, set <0 if play unlimited time')
     args = parser.parse_args()
 
 
@@ -54,7 +53,7 @@ if __name__ == "__main__":
 
 
     # game
-    game = Game(9, rules=rules.CHINESE)
+    game = Game(9, rules=rules.CHINESE, time_limit=args.time_limit)
     if args.black == 'ab':
         agentBlack = AlphaBetaPruningAgent(game, stone.BLACK, args.bdepth)
     elif args.black == 'rand':
@@ -78,25 +77,27 @@ if __name__ == "__main__":
         raise Exception('Invalid white agent')
 
     turn = 0
+    time_mode = True if args.time_limit > 0 else False
     while game.is_over() is False:
         begin_time = time.time()
         if turn == 0:
-            move = agentBlack.next_move(False)
+            move = agentBlack.next_move(time_mode)
         else:
-            move = agentWhite.next_move(False)
+            move = agentWhite.next_move(time_mode)
         gameLogger.info(move)
         if move is None:
             game.pss()
             gameLogger.info('black pass' if turn==0 else 'white pass')
         else:
             game.play_time(move)
-        turn = 1 - turn
         gameLogger.info(game.__str__())
         gameLogger.info(f'game num_moves: {game.num_moves}')
         gameLogger.info(f'game num_pass: {game.num_pass}')
         gameLogger.info(f'game score: {game.score()["result"]}')
-        gameLogger.info(f'time usedd: {time.time() - begin_time}')
+        gameLogger.info(f'time used: {time.time() - begin_time}')
+        gameLogger.info(f'remaining time: {game.get_remain_time(stone.BLACK) if turn==0 else game.get_remain_time(stone.WHITE)}')
         gameLogger.info('\n')
+        turn = 1 - turn
     if game.score()['result'][0] == 'B':
         gameLogger.info('Black wins')
     else:
