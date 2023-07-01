@@ -195,8 +195,8 @@ class AlphaBetaPruningAgent(ABCAgent):
 
         Qd += len(re.findall(qdpattern1, self.game.__str__(), re.DOTALL))
         Qd += len(re.findall(qdpattern2, self.game.__str__(), re.DOTALL))
-        # return (Q1-Q3+2*Qd)/4
-        return (10/self.game.num_moves*(Q1-Q3)-abs(35-self.game.num_moves)*2*Qd)/4
+        return (Q1-Q3+2*Qd)/4
+        # return (10/self.game.num_moves*(Q1-Q3)-abs(35-self.game.num_moves)*2*Qd)/4
 
     def min_value(self, depth: int, time_mode: bool, alpha: float, beta: float):
         if self.game.is_over():

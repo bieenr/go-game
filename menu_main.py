@@ -108,9 +108,9 @@ def game_mode():
                 if PEOPLE.checkForInput(MENU_MOUSE_POS):
                     play()
                 if AGENT_0.checkForInput(MENU_MOUSE_POS):
-                    play(stone.BLACK)
+                    play(stone.BLACK, time_mode=False)
                 if AGENT_1.checkForInput(MENU_MOUSE_POS):
-                    play(stone.WHITE)
+                    play(stone.WHITE, time_mode=False)
         pygame.display.update()
 
 
@@ -136,7 +136,7 @@ def play(may=None):
         elif BOT == 3:
             agent = AlphaBetaPruningAgent(game, may, 3)
         elif BOT == 4:
-            agent = DropAgent(game, may, 3, 10)
+            agent = DropAgent(game, may, 4, 10)
 
     exit = False
     num_pass = 0
