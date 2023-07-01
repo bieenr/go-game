@@ -108,9 +108,9 @@ def game_mode():
                 if PEOPLE.checkForInput(MENU_MOUSE_POS):
                     play()
                 if AGENT_0.checkForInput(MENU_MOUSE_POS):
-                    play(stone.BLACK, time_mode=False)
+                    play(stone.BLACK)
                 if AGENT_1.checkForInput(MENU_MOUSE_POS):
-                    play(stone.WHITE, time_mode=False)
+                    play(stone.WHITE)
         pygame.display.update()
 
 
@@ -147,7 +147,7 @@ def play(may=None):
             break
         # Luot cua Bot
         if (may != None and game.get_active_player() == may):
-            turn_may = agent.next_move()
+            turn_may = agent.next_move(time_mode=False)
             if turn_may is not None:
                 bo_luot_text = ""
                 now_move = [turn_may.get_x(), turn_may.get_y()]
