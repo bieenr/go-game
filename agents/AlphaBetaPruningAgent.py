@@ -24,21 +24,15 @@ class AlphaBetaPruningAgent(ABCAgent):
     def evaluate_board(self, state):
         score = 0
         score += self.territory_score(state)  # Đánh giá lãnh thổ
-        # print('***')
-        # print(score)
         score -= self.attack_score(state) * 0.5  # Đánh giá tấn công
-        # print(score)
         score += self.defense_score(state) * 0.3  # Đánh giá phòng thủ
-        # print(score)
-        score -= self.influence_score(state) * 0.2  # Đánh giá ảnh hưởng
-        # print(score)
+        if state.num_moves <= 15:
+            score -= self.influence_score(state) * 0.2  # Đánh giá ảnh hưởng
         # Đánh giá chặn đường đi của đối thủ
         score += self.blocking_score(state) * 0.4
         # Create eye and connecting stones
         score += self.Euler_number(state.get_board(), self.color) - \
             self.Euler_number(state.get_board(), self.op_color)
-        # print(score)
-        # print('***')
         return score
 
     def territory_score(self, state):
@@ -118,18 +112,19 @@ class AlphaBetaPruningAgent(ABCAgent):
 
     def count_boundary_stones(self, board, player):
         # Đếm số lượng quân cờ của người chơi gần biên giới
-        count = 0
-        n = 9
-        for i in range(n):
-            if board[i][0] == player:
-                count += 1
-            if board[i][n-1] == player:
-                count += 1
-            if board[0][i] == player:
-                count += 1
-            if board[n-1][i] == player:
-                count += 1
-        return count
+        # count = 0
+        # n = 9
+        # for i in range(n):
+        #     if board[i][0] == player:
+        #         count += 1
+        #     if board[i][n-1] == player:
+        #         count += 1
+        #     if board[0][i] == player:
+        #         count += 1
+        #     if board[n-1][i] == player:
+        #         count += 1
+        return (board[:][0]==player).sum() + (board[:][8]==player).sum() \
+                + (board[0][:]==player).sum() + (board[8][:]==player).sum()
 
     def count_blocked_paths(self, board, player):
         # Đếm số lượng đường đi bị chặn của đối thủ

@@ -43,7 +43,8 @@ if __name__ == "__main__":
                         + ('_' + str(args.bwidth) if args.black == 'drop' else '') \
                         + '_' + args.white \
                         + '_' + (str(args.wdepth) if args.white in ['ab', 'drop', 'greedy'] else '') \
-                        + ('_' + str(args.wwidth) if args.white == 'drop' else '')
+                        + ('_' + str(args.wwidth) if args.white == 'drop' else '') \
+                        + ('_time' + str(args.time_limit) if args.time_limit > 0 else '')
     if not os.path.exists(game_log_foldername):
         os.makedirs(game_log_foldername)
     game_log_file_name =  str(datetime.datetime.timestamp(dt)) + '.log'
