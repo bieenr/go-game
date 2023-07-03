@@ -10,8 +10,8 @@ from agents import AlphaBetaPruningAgent
 
 
 class GreedyAgent(AlphaBetaPruningAgent):
-    def __init__(self, game: Game, color: stone, depth: int):
-        super().__init__(game, color, depth)
+    def __init__(self, game: Game, color: stone):
+        super().__init__(game, color, depth=1)
 
     def evaluate_board(self, state):
         return self.game.score()[self.color] - self.game.score()[self.op_color]

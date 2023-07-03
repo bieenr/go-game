@@ -138,7 +138,10 @@ class MyGame(Game):
 
     def get_rand_non_pss_move(self):
         moves = self.get_non_pss_moves()
-        return moves[randint(0, len(moves) - 1)]
+        if len(moves) == 0:
+            return None
+        else:
+            return moves[randint(0, len(moves) - 1)]
 
     def get_rand_move(self):
         moves = self.get_legal_moves()

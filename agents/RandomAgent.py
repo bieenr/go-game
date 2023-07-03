@@ -10,6 +10,9 @@ class RandomAgent(ABCAgent):
         return self.game.score()[self.color] - self.game.score()[self.op_color]
 
     def next_move(self, time_mode):
+        sc = self.evaluate_board()
+        if sc < -15 and self.game.num_moves > 20:
+            return None
         if self.game.num_pass == 1 and self.evaluate_board() > 0:
             return None
         legal_moves = self.game.get_non_pss_moves()

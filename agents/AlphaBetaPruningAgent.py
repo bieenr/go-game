@@ -301,10 +301,13 @@ class AlphaBetaPruningAgent(ABCAgent):
         else:
             # 9 la time_left, o.313 là hệ số tự tuning
             time_consuming = self.game.get_remain_time(self.color) * 0.313
-            self.end_time = time.time() + time_consuming
+            if time_mode and time_consuming < 15:
+                return self.game.get_rand_non_pss_move()
+            else:
+                self.end_time = time.time() + time_consuming
 
-            one = time.time()
-            move = self.find_move_alpha_beta(self.depth, time_mode)
-            two = time.time()
-            print(two - one)
-            return move
+                one = time.time()
+                move = self.find_move_alpha_beta(self.depth, time_mode)
+                two = time.time()
+                print(two - one)
+                return move
